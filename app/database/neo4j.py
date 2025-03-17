@@ -28,4 +28,10 @@ def execute_query(session: Session, query: str, parameters: dict = None) -> list
     result = session.run(query, parameters)
     return [record for record in result]
 
+#fonction pour créer un noeud
+def create_node(session: Session, label: str, properties: dict) -> dict:
+
+    query = f"CREATE (n:{label} $props) RETURN n"
+    result = execute_query(session, query, {"props": properties})
+    return result[0]["n"] if result else None
 
