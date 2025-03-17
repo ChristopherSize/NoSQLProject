@@ -23,15 +23,43 @@ class Neo4jConnection:
 
 #fonction pour exécuter une requête Cypher
 def execute_query(session: Session, query: str, parameters: dict = None) -> list:
-   
+    """
+    Exécute une requête Cypher.
+    
+    Args:
+        session (Session): Session Neo4j
+        query (str): Requête Cypher
+        parameters (dict, optional): Paramètres de la requête
+        
+    Returns:
+        list: Résultats de la requête
+    """
     parameters = parameters or {}
     result = session.run(query, parameters)
     return [record for record in result]
 
 #fonction pour créer un noeud
 def create_node(session: Session, label: str, properties: dict) -> dict:
-
+    
     query = f"CREATE (n:{label} $props) RETURN n"
     result = execute_query(session, query, {"props": properties})
     return result[0]["n"] if result else None
 
+#fonction pour créer une relation
+def create_relationship(session: Session, start_node_id: int, end_node_id: int, 
+                       relationship_type: str, properties: dict = None) -> dict:
+    
+    properties = properties or {}
+    query = f"""
+    MATCH (start), (end)
+    WHERE ID(start) = $start_id AND ID(end) = $end_id
+    CREATE (start)-[r:{relationship_type} $props]->(end)
+    RETURN r
+    """
+    params = {
+        "start_id": start_node_id,
+        "end_id": end_node_id,
+        "props": properties
+    }
+    result = execute_query(session, query, params)
+    return result[0]["r"] if result else None 
