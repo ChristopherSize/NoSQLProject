@@ -47,18 +47,18 @@ def show_home():
 
 #affichage de la page de gestion MongoDB
 def show_mongodb_page():
-    st.header("📄 Gestion MongoDB")
+    st.header("Gestion MongoDB")
     
     #connexion à MongoDB
     with MongoDBConnection(MONGODB_URI) as client:
-        st.success("✅ Connexion MongoDB réussie")
+        st.success("Connexion MongoDB réussie")
         database_name = st.text_input("Base de données", "sample_db", key="mongodb_db_input")
         collection_name = st.text_input("Collection", "sample_collection", key="mongodb_collection_input")
         db = get_database(client, database_name)
         collection = get_collection(db, collection_name)
 
         #recherche de documents
-        with st.expander("🔍 Rechercher des documents"):
+        with st.expander("Rechercher des documents"):
             query_str = st.text_area("Critères (JSON)", "{}", key="search_query")
             if st.button("Rechercher", key="search_button"):
                 try:
@@ -68,70 +68,70 @@ def show_mongodb_page():
                     st.error("Format JSON invalide")
 
         #insertion de documents
-        with st.expander("➕ Insérer un document"):
+        with st.expander("Insérer un document"):
             document_str = st.text_area("Document (JSON)", "{}", key="insert_document")
             if st.button("Insérer", key="insert_button"):
                 try:
                     result = insert_document(collection, json.loads(document_str))
-                    st.toast(f"✅ Document inséré avec ID: {result}")
+                    st.toast(f"Document inséré avec ID: {result}")
                 except json.JSONDecodeError:
                     st.error("Format JSON invalide")
 
         #mise à jour de documents
-        with st.expander("✏️ Mettre à jour"):
+        with st.expander("Mettre à jour"):
             query_str = st.text_area("Critères (JSON)", "{}", key="update_query")
             update_str = st.text_area("Mise à jour (JSON)", "{}", key="update_data")
             if st.button("Mettre à jour", key="update_button"):
                 try:
                     count = update_documents(collection, json.loads(query_str), json.loads(update_str))
-                    st.toast(f"✅ {count} document(s) mis à jour")
+                    st.toast(f"{count} document(s) mis à jour")
                 except json.JSONDecodeError:
                     st.error("Format JSON invalide")
         
         #suppression de documents
-        with st.expander("🗑️ Supprimer"):
+        with st.expander("Supprimer"):
             query_str = st.text_area("Critères (JSON)", "{}", key="delete_query")
             if st.button("Supprimer", key="delete_button"):
                 try:
                     count = delete_documents(collection, json.loads(query_str))
-                    st.toast(f"✅ {count} document(s) supprimé(s)")
+                    st.toast(f"{count} document(s) supprimé(s)")
                 except json.JSONDecodeError:
                     st.error("Format JSON invalide")
 
 #affichage de la page de gestion Neo4j
 def show_neo4j_page():
-    st.header("🔗 Gestion Neo4j")
+    st.header("Gestion Neo4j")
     
     #connexion à Neo4j
     with Neo4jConnection(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD) as driver:
-        st.success("✅ Connexion Neo4j réussie")
+        st.success("Connexion Neo4j réussie")
         
         #création d'un nœud
-        with st.expander("➕ Créer un nœud"):
+        with st.expander("Créer un nœud"):
             label = st.text_input("Label", key="neo4j_label_input")
             properties_str = st.text_area("Propriétés (JSON)", "{}", key="create_node")
             if st.button("Créer", key="create_node_button"):
                 try:
                     result = create_node(driver, label, json.loads(properties_str))
-                    st.toast("✅ Nœud créé avec succès")
+                    st.toast("Nœud créé avec succès")
                 except json.JSONDecodeError:
                     st.error("Format JSON invalide")
         
         #recherche de nœuds
-        with st.expander("🔍 Rechercher des nœuds"):
+        with st.expander("Rechercher des nœuds"):
             label = st.text_input("Label (optionnel)", key="search_nodes_input")
             if st.button("Rechercher", key="search_nodes_button"):
                 results = find_nodes(driver, label if label else None)
                 st.json(results)
         
         #création d'une relation
-        with st.expander("🔗 Créer une relation"):
+        with st.expander("Créer une relation"):
             start_id = st.number_input("ID de départ", min_value=0, step=1)
             end_id = st.number_input("ID d'arrivée", min_value=0, step=1)
             rel_type = st.text_input("Type de relation", key="create_relationship_input")
             if st.button("Créer relation", key="create_relationship_button"):
                 if create_relationship(driver, start_id, end_id, rel_type):
-                    st.toast("✅ Relation créée avec succès")
+                    st.toast("Relation créée avec succès")
 
 #affichage de la page de visualisation          
 def show_visualization_page():
@@ -171,3 +171,4 @@ def show_visualization_page():
 
 if __name__ == "__main__":
     main()
+
