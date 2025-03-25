@@ -89,6 +89,8 @@ def create_neo4j_graph_visualization(session: Session,
     # Création du réseau
     net = Network(height=height, width=width, notebook=True)
     
+
+    
     # Récupération des nœuds
     query = f"""
     MATCH (n)
@@ -143,15 +145,10 @@ def create_neo4j_graph_visualization(session: Session,
         net.save_graph(tmp_file.name)
         return tmp_file.name
 
-def display_neo4j_graph(session: Session, limit: int = 100):
-    """
-    Affiche le graphe Neo4j dans Streamlit.
-    
-    Args:
-        session (Session): Session Neo4j
-        limit (int): Nombre maximum de nœuds à afficher
-    """
-    html_file = create_neo4j_graph_visualization(session, limit)
-    with open(html_file, 'r', encoding='utf-8') as f:
-        html_content = f.read()
-    st.components.v1.html(html_content, height=600) 
+#affichage du graphe Neo4j
+def display_neo4j_graph(driver, limit: int = 100):
+    with driver.session() as session:  
+        html_file = create_neo4j_graph_visualization(session, limit)
+        with open(html_file, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        st.components.v1.html(html_content, height=600)
