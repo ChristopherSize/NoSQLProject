@@ -15,8 +15,12 @@ class MongoDBConnection:
 
     #fonction pour établir la connexion lors de l'entrée dans le contexte
     def __enter__(self) -> MongoClient:
-        self._client = MongoClient(self.uri)
-        return self._client
+        try:
+            self._client = MongoClient(self.uri)
+            return self._client
+        except Exception as e:
+            print(f"Erreur lors de la connexion à MongoDB: {str(e)}")
+            raise
 
     #fonction pour fermer la connexion lors de la sortie du contexte
     def __exit__(self, exc_type, exc_val, exc_tb):
