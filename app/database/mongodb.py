@@ -16,7 +16,7 @@ class MongoDBConnection:
     #fonction pour établir la connexion lors de l'entrée dans le contexte
     def __enter__(self) -> MongoClient:
         try:
-            self._client = MongoClient(self.uri)
+            self._client = MongoClient(self.uri, tls=True, tlsAllowInvalidCertificates=True)
             return self._client
         except Exception as e:
             print(f"Erreur lors de la connexion à MongoDB: {str(e)}")
