@@ -56,40 +56,32 @@ def find_nodes(session: Session, label: Optional[str] = None,
         print(f"Erreur lors de la recherche des nœuds: {str(e)}")
         return []
 
-def create_relationship(session: Session, start_node_id: int, end_node_id: int,
-                       rel_type: str, properties: Optional[Dict[str, Any]] = None) -> bool:
-    """
-    Crée une relation entre deux nœuds.
+# Fonction pour créer une relation entre deux nœuds
+def create_relationship(session, start_id, end_id, rel_type, props=None):
+    """Crée une relation entre deux nœuds de manière sécurisée"""
+    # Validation du type de relation
+    if not re.match(r'^[A-Z_]{1,50}$', rel_type):
+        raise ValueError("Type de relation invalide (doit être en majuscules, max 50 caractères)")
     
-    Args:
-        session (Session): Session Neo4j
-        start_node_id (int): ID du nœud de départ
-        end_node_id (int): ID du nœud d'arrivée
-        rel_type (str): Type de relation
-        properties (Dict[str, Any], optional): Propriétés de la relation
-        
-    Returns:
-        bool: True si succès, False sinon
-    """
-    query = """
+    # Construction dynamique sécurisée de la requête
+    query = f"""
     MATCH (start), (end)
     WHERE ID(start) = $start_id AND ID(end) = $end_id
-    CREATE (start)-[r:$rel_type $props]->(end)
-    RETURN r
+    CREATE (start)-[r:{rel_type}]->(end)
+    SET r += $props
+    RETURN COUNT(r) AS count
     """
+    
     try:
-        params = {
-            "start_id": start_node_id,
-            "end_id": end_node_id,
-            "rel_type": rel_type,
-            "props": properties or {}
-        }
-        result = session.run(query, **params)
-        return result.single() is not None
+        result = session.run(query, 
+                            start_id=start_id, 
+                            end_id=end_id,
+                            props=props or {})
+        return result.single()["count"] > 0
     except Exception as e:
-        print(f"Erreur lors de la création de la relation: {str(e)}")
-        return False
+        raise RuntimeError(f"Erreur Neo4j: {str(e)}") from e
 
+# Fonction pour supprimer une relation entre deux nœuds
 def find_shortest_path(session: Session, start_node_id: int, end_node_id: int,
                       rel_type: Optional[str] = None) -> List[Dict[str, Any]]:
     """
@@ -124,7 +116,8 @@ def find_shortest_path(session: Session, start_node_id: int, end_node_id: int,
     except Exception as e:
         print(f"Erreur lors de la recherche du plus court chemin: {str(e)}")
         return []
-
+    
+# Fonction pour exécuter une requête Cypher personnalisée
 def execute_cypher_query(session: Session, query: str, 
                         parameters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
     """
@@ -145,6 +138,7 @@ def execute_cypher_query(session: Session, query: str,
         print(f"Erreur lors de l'exécution de la requête: {str(e)}")
         return []
 
+# Fonction pour analyser le graphe
 def analyze_graph(session: Session) -> Dict[str, Any]:
     """
     Effectue une analyse basique du graphe.
