@@ -3,7 +3,11 @@ Module contenant les opérations pour Neo4j
 """
 from typing import List, Dict, Any, Optional
 from neo4j import Session
+from typing import List, Dict, Any, Optional
+from neo4j import Session
+import pandas as pd
 
+# Fonction pour créer un nœud
 def create_node(session: Session, label: str, properties: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     Crée un nœud dans le graphe Neo4j.
@@ -25,6 +29,7 @@ def create_node(session: Session, label: str, properties: Dict[str, Any]) -> Opt
         print(f"Erreur lors de la création du nœud: {str(e)}")
         return None
 
+# Fonction pour trouver un nœud par ID
 def find_nodes(session: Session, label: Optional[str] = None, 
                properties: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
     """
@@ -136,6 +141,24 @@ def execute_cypher_query(session: Session, query: str,
         return [dict(record) for record in result]
     except Exception as e:
         print(f"Erreur lors de l'exécution de la requête: {str(e)}")
+        return []
+
+# Fonction pour obtenir le plus court chemin entre deux acteurs
+def get_shortest_path_between_actors(session: Session, actor1_name: str, actor2_name: str) -> List[Dict[str, Any]]:
+    query = """
+    MATCH (a1:Actor {name: $actor1_name}), (a2:Actor {name: $actor2_name})
+    MATCH path = shortestPath((a1)-[:ACTED_IN*..10]-(a2))
+    RETURN [node IN nodes(path) | {type: labels(node)[0], properties: properties(node)}] AS path_nodes, 
+           [rel IN relationships(path) | type(rel)] AS path_relationships
+    """
+    try:
+        result = session.run(query, actor1_name=actor1_name, actor2_name=actor2_name)
+        record = result.single()
+        if record:
+            return {"nodes": record["path_nodes"], "relationships": record["path_relationships"]}
+        return []
+    except Exception as e:
+        print(f"Erreur chemin entre acteurs: {e}")
         return []
 
 # Fonction pour analyser le graphe

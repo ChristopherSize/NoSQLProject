@@ -9,6 +9,8 @@ from neo4j import Session
 from pyvis.network import Network
 import streamlit as st
 import tempfile
+import networkx as nx  
+from pyvis.network import Network
 
 def create_mongodb_bar_chart(data: List[Dict[str, Any]], 
                            x_field: str, 
@@ -152,3 +154,62 @@ def display_neo4j_graph(driver, limit: int = 100):
         with open(html_file, 'r', encoding='utf-8') as f:
             html_content = f.read()
         st.components.v1.html(html_content, height=600)
+
+def display_optimized_graph(nodes, relationships, layout_config=None, async_rendering=False):
+    """Version améliorée de display_neo4j_graph avec gestion des gros graphes"""
+    
+    # Conversion des objets Neo4j vers des formats NetworkX compatibles
+    G = nx.Graph()
+    
+    # Ajout des nœuds avec leurs propriétés
+    for node in nodes:
+        props = dict(node.items())
+        G.add_node(node.id, label=props.get('name') or props.get('title'), **props)
+    
+    # Ajout des relations
+    for rel in relationships:
+        G.add_edge(rel.start_node.id, rel.end_node.id, label=rel.type)
+    
+    # Configuration PyVis
+    net = Network(height="800px", 
+                width="100%", 
+                bgcolor="#222222", 
+                font_color="white",
+                directed=True,
+                layout=layout_config)
+    
+    # Transfert du graphe NetworkX vers PyVis
+    net.from_nx(G)
+    
+    # Optimisations pour les gros datasets
+    net.set_options("""
+    {
+        "nodes": {
+            "scaling": {
+                "min": 10,
+                "max": 30
+            }
+        },
+        "edges": {
+            "smooth": {
+                "type": "continuous"
+            },
+            "arrowStrikethrough": false
+        },
+        "physics": {
+            "stabilization": {
+                "enabled": true,
+                "iterations": 100
+            }
+        }
+    }
+    """)
+    
+    # Génération du HTML
+    with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmpfile:
+        net.save_graph(tmpfile.name)
+        with open(tmpfile.name, "r", encoding="utf-8") as f:
+            html = f.read()
+    
+    # Affichage Streamlit
+    st.components.v1.html(html, height=800, scrolling=True)
