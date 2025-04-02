@@ -719,7 +719,7 @@ def show_integration_page():
     st.warning("L'intégration modifiera votre base Neo4j et peut prendre du temps.")
 
     # --- Bouton d'Intégration ---
-    if st.button("Lancer l'intégration (Exigences Spécifiques)", key="integrate_specific_button"):
+    if st.button("Lancer l'intégration", key="integrate_specific_button"):
         if not mongo_db_name or not mongo_collection_name:
             st.error("Veuillez spécifier la base et la collection MongoDB.")
             return
